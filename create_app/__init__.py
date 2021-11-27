@@ -1,5 +1,5 @@
 from flask import Flask
-from config import config_map
+from config import config_map 
 
 # python的标准模块，提供了各种各样的日志工具
 import logging
