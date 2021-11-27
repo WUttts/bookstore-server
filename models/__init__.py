@@ -1,92 +1,92 @@
-# 从sqlalchemy.ext.declarative中导入declarative_base创建sqlalchemy的基类
-from sqlalchemy.ext.declarative import declarative_base
-# 从sqlalchemy中导入各种各样的数据类型，用于创建字段或者指定字段的数据类型
-from sqlalchemy import Column, Integer, Float, String, DateTime, Boolean, ForeignKey
-# create_engine创建数据库连接所需
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-import datetime
+from flask import Flask
+from sqlalchemy.sql.schema import ForeignKey
+from flask_sqlalchemy import SQLAlchemy
 
-# create_engine()用来初始化数据库连接引擎。SQLAlchemy用一个字符串表示连接信息：
-# '数据库类型+数据库驱动名称://用户名:口令@机器地址:端口号/数据库名'
-engine = create_engine("mysql+mysqlconnector://root:wtp164614@localhost:3306/bookstore?charset=utf8mb4", max_overflow=5)
-# 创建对象的基类:
-Base = declarative_base()
+app = Flask(__name__)
+SQLALCHEMY_TRACK_MODIFICATIONS = False
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tmp.db'
+db = SQLAlchemy(app)
+import datetime
 
 
 # 创建时间与更新时间
 class Time(object):
-    create_time = Column(DateTime, default=datetime.datetime.now)
-    update_time = Column(DateTime, default=datetime.datetime.now)
+    create_time = db.Column(db.DateTime, default=datetime.datetime.now)
+    update_time = db.Column(db.DateTime, default=datetime.datetime.now)
 
 
-class User(Base, Time):
+class User(db.Model, Time):
     __tablename__ = "user_info"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(30), nullable=False)
-    password = Column(String(100), nullable=False)
-    is_admin = Column(Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(30), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
 
-class Stock(Base, Time):
+class Stock(db.Model, Time):
     __tablename__ = "stock"
-    id = Column(String(100), primary_key=True)
-    book_name = Column(String(30), nullable=False)
-    author = Column(String(30), nullable=False)
-    release_time = Column(DateTime, nullable=False)
-    message = Column(String(500), nullable=False)
-    price = Column(Float, nullable=False)
-    retail_price = Column(Float, nullable=False)
-    stock = Column(Integer, nullable=False)
-    picture_id = Column(Integer, ForeignKey("file.id"))
+    id = db.Column(db.String(100), primary_key=True)
+    book_name = db.Column(db.String(30), nullable=False)
+    author = db.Column(db.String(30), nullable=False)
+    release_time = db.Column(db.DateTime, nullable=False)
+    message = db.Column(db.String(500), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    retail_price = db.Column(db.Float, nullable=False)
+    stock = db.Column(db.Integer, nullable=False)
+    picture_id = db.Column(db.Integer, ForeignKey("file.id"))
 
 
-class File(Base):
+class File(db.Model):
     __tablename__ = "file"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    file_name = Column(String(100), nullable=False)
-    real_name = Column(String(100), nullable=False)
-    file_type = Column(String(30), nullable=False)
-    file_size = Column(Integer, nullable=False)
-    url = Column(String(100), nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    file_name = db.Column(db.String(100), nullable=False)
+    real_name = db.Column(db.String(100), nullable=False)
+    file_type = db.Column(db.String(30), nullable=False)
+    file_size = db.Column(db.Integer, nullable=False)
+    url = db.Column(db.String(100), nullable=False)
 
 
-class Cart(Base, Time):
+class Cart(db.Model, Time):
     __tablename__ = "Cart"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    stock_id = Column(String(100), ForeignKey("stock.id"))
-    user_id = Column(Integer, ForeignKey("user_info.id"))
-    books_number = Column(Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    stock_id = db.Column(db.String(100), ForeignKey("stock.id"))
+    user_id = db.Column(db.Integer, ForeignKey("user_info.id"))
+    books_number = db.Column(db.Integer, nullable=False)
 
 
-class Order(Base, Time):
+class Order(db.Model, Time):
     __tablename__ = "order"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    book_id = Column(String(100), ForeignKey("stock.id"))
-    user_id = Column(Integer, ForeignKey("user_info.id"))
-    number = Column(Integer, nullable=False)
-    price = Column(Float, nullable=False)
-    postage = Column(Float, nullable=False)
-    is_payment = Column(Boolean, default=False)
-    is_deliver_goods = Column(Boolean, default=False)
-    receiving = Column(Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    book_id = db.Column(db.String(100), ForeignKey("stock.id"))
+    user_id = db.Column(db.Integer, ForeignKey("user_info.id"))
+    number = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    postage = db.Column(db.Float, nullable=False)
+    is_payment = db.Column(db.Boolean, default=False)
+    is_deliver_goods = db.Column(db.Boolean, default=False)
+    receiving = db.Column(db.Boolean, default=False)
 
 
-# 初始化数据模型：初始化数据模型时只会在数据库中创建继承Base类的数据模型
+# 初始化数据模型：初始化数据模型时只会在数据库中创建继承db.Model类的数据模型
 def init_db():
-    Base.metadata.create_all(engine)
+    db.create_all()
 
 
-# 删除数据模型：删除数据模型时只会在数据库中删除继承Base类的数据模型
+# 删除数据模型：删除数据模型时只会在数据库中删除继承db.Model类的数据模型
 def drop_db():
-    Base.metadata.drop_all(engine)
+   db.drop_all()
 
-
-# 创建一个配置过的Session类：Session可以视为会话，作为为打开与数据库的通话，这个类可以管理数据库的连接
-DBSession = sessionmaker(bind=engine)
+DBSession = db.session
 
 
 # 请慎重运行本文件，本文件会初始化数据库
 if __name__ == '__main__':
     drop_db()
     init_db()
+    user1 = User(name="admin", password="p455w0rd", is_admin=True)
+    user2 = User(name="user1", password="p455w0rd", is_admin=False)
+    user3 = User(name="user2", password="p455w0rd", is_admin=False)
+    dbsession = DBSession()
+    dbsession.add_all([user1, user2, user3])
+    dbsession.commit()
+    dbsession.close()
