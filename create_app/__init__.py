@@ -1,4 +1,6 @@
 from flask import Flask
+from sqlalchemy.sql.schema import ForeignKey
+from flask_sqlalchemy import SQLAlchemy
 from config import config_map 
 
 # python的标准模块，提供了各种各样的日志工具
@@ -25,6 +27,9 @@ def create_app(config_name):
         :return: flask对象
     """
     app = Flask(__name__, static_folder="../static")
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../tmp.db'
+    db = SQLAlchemy(app)
     app.config.from_object(config_map.get(config_name))
     hook.before_request(app)
     from api_1_0 import api
